@@ -1,6 +1,11 @@
 import NextAuth from "next-auth";
 import Credentials from "next-auth/providers/credentials";
 import { sendRequest } from "./utils/api";
+import {
+  InActiveAccountError,
+  InvalidEmailPasswordError,
+} from "./utils/errors";
+import { IUser } from "./types/next-auth";
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
   providers: [
@@ -14,32 +19,49 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
 
       //@ts-ignore
       authorize: async (credentials) => {
-        let user = null;
+        console.log(">>> check credentials: ", credentials);
 
-        /// call backend
-        const res = await sendRequest({
+        const res = await sendRequest<IBackendRes<ILogin>>({
           method: "POST",
-          url: "http://localhost:8080/api/v1/auth/login",
+          url: "http://localhost:8000/api/v1/auth/login",
           body: {
-            username: credentials.email,
-            password: credentials.password,
+            username: credentials?.email,
+            password: credentials?.password,
           },
         });
 
-        ///
-
-        if (!user) {
-          // No user found, so this is their first attempt to login
-          // Optionally, this is also the place you could do a user registration
-          throw new Error("Invalid credentials.");
+        if (!res.statusCode) {
+          return {
+            _id: res.data?.user?._id,
+            name: res.data?.user?.name,
+            email: res.data?.user?.email,
+            access_token: res.data?.access_token,
+          };
+        } else if (+res.statusCode === 401) {
+          throw new InvalidEmailPasswordError("Email or password is incorrect");
+        } else if (+res.statusCode === 400) {
+          throw new InActiveAccountError("Your account is not active yet");
+        } else {
+          throw new Error("Internal server errors");
         }
-
-        // return user object with their profile data
-        return user;
       },
     }),
   ],
+
   pages: {
     signIn: "auth/login",
+  },
+  callbacks: {
+    jwt({ token, user }) {
+      if (user) {
+        // User is available during sign-in
+        token.user = user as unknown as IUser;
+      }
+      return token;
+    },
+    session({ session, token }) {
+      (session.user as IUser) = token.user;
+      return session;
+    },
   },
 });
