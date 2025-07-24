@@ -1,7 +1,6 @@
-
-
 import NextAuth from "next-auth";
 import Credentials from "next-auth/providers/credentials";
+import { sendRequest } from "./utils/api";
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
   providers: [
@@ -18,15 +17,16 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         let user = null;
 
         /// call backend
+        const res = await sendRequest({
+          method: "POST",
+          url: "http://localhost:8080/api/v1/auth/login",
+          body: {
+            username: credentials.email,
+            password: credentials.password,
+          },
+        });
 
-        user = {
-          _id: "123",
-          username: "132",
-          email: "132",
-          isVerify: "132",
-          type: "132",
-          role: "132",
-        };
+        ///
 
         if (!user) {
           // No user found, so this is their first attempt to login
@@ -39,4 +39,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       },
     }),
   ],
+  pages: {
+    signIn: "auth/login",
+  },
 });
