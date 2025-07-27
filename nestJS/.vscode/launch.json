@@ -1,3 +1,4 @@
+//launch.json
 {
   // Use IntelliSense to learn about possible attributes.
   // Hover to view descriptions of existing attributes.
@@ -5,15 +6,15 @@
   "version": "0.2.0",
   "configurations": [
     {
-      "type": "node",
+      "name": "Next.js: debug full stack",
+      "type": "node-terminal",
       "request": "launch",
-      "name": "Nest Debug",
-      "runtimeExecutable": "npm",
-      "runtimeArgs": ["run", "start:debug", "--", "--inspect-brk"],
-      "console": "integratedTerminal",
-      "restart": true,
-      "protocol": "auto",
-      "port": 9229,
+      "command": "npm run dev",
+      "serverReadyAction": {
+        "pattern": "started server on .+, url: (https?://.+)",
+        "uriFormat": "%s",
+        "action": "debugWithChrome"
+      },
       "autoAttachChildProcesses": true
     }
   ]

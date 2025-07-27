@@ -9,8 +9,11 @@ import { Dropdown, Space } from "antd";
 import { Session } from "inspector/promises";
 import { useSession } from "next-auth/react";
 
-const AdminHeader = () => {
-  const { data: session, status } = useSession();
+const AdminHeader = (props: any) => {
+  // const { data: session, status } = useSession();
+
+  const { session } = props;
+
   const { Header } = Layout;
   const { collapseMenu, setCollapseMenu } = useContext(AdminContext)!;
 
